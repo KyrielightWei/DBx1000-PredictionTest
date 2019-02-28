@@ -41,7 +41,7 @@ class TxnStats
 {
     private:
 
-    map<txnid_t,EachTxnStats> txn_infor_map;
+    map<txnid_t,EachTxnStats*> txn_infor_map;
 
     public:
 
@@ -49,7 +49,9 @@ class TxnStats
     
     static void clearStats(EachTxnStats * txn_stats); // init each_txn_stats
 
-    bool add_stats(txnid_t txn_id,TXN_STATS_TYPE type,void * value);
+    void add_stats(txnid_t txn_id,TXN_STATS_TYPE type,void * value);
+
+    bool add_txn(txnid_t txn_id);
 }
 
 
