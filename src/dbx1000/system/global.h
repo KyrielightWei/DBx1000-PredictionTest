@@ -68,6 +68,8 @@ extern pthread_barrier_t warmup_bar;
 extern carbon_barrier_t enable_barrier;
 #endif
 
+extern TxnStats txn_stats;
+
 /******************************************/
 // Global Parameter
 /******************************************/

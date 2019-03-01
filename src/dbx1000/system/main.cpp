@@ -20,7 +20,9 @@ void parser(int argc, char * argv[]);
 int main(int argc, char* argv[])
 {
 	parser(argc, argv);
-	
+
+	txn_stats.init();
+
 	mem_allocator.init(g_part_cnt, MEM_SIZE / g_part_cnt); 
 	stats.init();
 	glob_manager = (Manager *) _mm_malloc(sizeof(Manager), 64);

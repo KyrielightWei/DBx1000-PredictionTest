@@ -7,8 +7,20 @@
 #include "txn.h"
 
 #include <map>
+#include <vector>
 
 using std::map;
+
+sizeof uint64_t key_type;
+
+enum TxnType
+{
+    READ,  //1
+    WR,  //2
+    SCAN,   //3
+    SCAN_READ, // 1+3 
+    SCAN_WR //2+3
+}
 
 struct EachTxnStats //map
 {
@@ -16,25 +28,35 @@ struct EachTxnStats //map
     double cpu_time;
     /*memory size*/
     uint64_t me_size;
-    /*io data size*/
-    uint64_t read_size;
-    uint64_t write_size;
-    uint32_t read_count;
-    uint32_t write_count;
-    /*io time*/
-    double io_time;
+    /*WR*/
+    map<key_type,uint32_t> read_keys;
+    map<key_type,uint32_t> write_keys;
+    map<key_type,uint32_t> scan_keys; // start_key and scan_len
+    /*access type*/
+    TXN_TYPE _type;
+    /*result*/
+    RC rc；
+    /*start time*/
+    double start_time;
 };
 
 enum TXN_STATS_TYPE
 {
     CPU_TIME,
     MEMORY,
-    READ_SIZE,
-    READ_CNT,
-    WRITE_SIZE,
-    WRITE_CNT,
-    IO_TIME
+    READ_KEY,
+    WRITE_KEY,
+    SCAN_KEY,
+    TXN_TYPE，
+    RESULT,
+    START_TIME
 }
+
+struct ScanInfo
+{
+    key_type scan_key,
+    uint32_t scan_len
+};
 
 
 class TxnStats
@@ -52,6 +74,12 @@ class TxnStats
     void add_stats(txnid_t txn_id,TXN_STATS_TYPE type,void * value);
 
     bool add_txn(txnid_t txn_id);
+
+    void final_type_cal(uint8_t * final_type,access_t rtype);
+
+    void txn_finish(txn_man * txn,base_query* query,RC rc,uint64_t timespan,uint64_t start_time);
+    
+    void stats_print();
 }
 
 

@@ -48,9 +48,9 @@ RC thread_t::run() {
 	rdm.init(get_thd_id());
 	RC rc = RCOK;
 	txn_man * m_txn;
-	rc = _wl->get_txn_man(m_txn, this);
+	rc = _wl->get_txn_man(m_txn, this); 
 	assert (rc == RCOK);
-	glob_manager->set_txn_man(m_txn);
+	glob_manager->set_txn_man(m_txn); 
 
 	base_query * m_query = NULL;
 	uint64_t thd_txn_id = 0;
@@ -170,6 +170,7 @@ RC thread_t::run() {
 		INC_STATS(get_thd_id(), run_time, timespan);
 		INC_STATS(get_thd_id(), latency, timespan);
 		//stats.add_lat(get_thd_id(), timespan);
+		txn_stats.txn_finish(m_txn,m_query,rc,timespan,starttime);
 		if (rc == RCOK) {
 			INC_STATS(get_thd_id(), txn_cnt, 1);
 			stats.commit(get_thd_id());

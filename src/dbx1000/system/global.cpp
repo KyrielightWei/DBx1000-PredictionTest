@@ -8,6 +8,9 @@
 #include "occ.h"
 #include "vll.h"
 
+
+TxnStats txn_stats;
+
 mem_alloc mem_allocator;
 Stats stats;
 DL_detect dl_detector;
