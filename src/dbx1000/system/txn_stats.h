@@ -10,8 +10,12 @@
 #include <vector>
 
 using std::map;
+using std::cout;
+using std::endl;
 
 sizeof uint64_t key_type;
+
+typedef map<txnid_t,EachTxnStats*> TxnMap;
 
 enum TxnType
 {

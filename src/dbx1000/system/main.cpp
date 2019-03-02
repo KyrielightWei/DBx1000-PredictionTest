@@ -105,6 +105,8 @@ int main(int argc, char* argv[])
 	} else {
 		((TestWorkload *)m_wl)->summarize();
 	}
+
+	txn_stats.stats_print();
 	return 0;
 }
 

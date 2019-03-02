@@ -174,3 +174,21 @@ void TxnStats::txn_finish(txn_man * txn,base_query* query,RC rc,uint64_t timespa
 
 }
 
+void TxnStats::stats_print()
+{
+    for(TxnMap::iterator i = txn_infor_map.begin(); i != txn_infor_map.end(); i++)
+    {
+        txnid_t txn_id = i->first;
+        EachTxnStats * now_stats = i->second;
+        cout << endl;
+        cout << "TXN_ID = " << txn_id << endl;
+        cout << "CPU_TIME = " << now_stats->cpu_time << endl;
+        cout << "START_TIME = " << now_stats->start_time << endl;
+        cout << "TXN_RESULT = " << now_stats->rc << endl;
+        cout << "TXN_TYPE = " << now_stats->_type << endl;
+        cout << "READ_COUNT = " << now_stats->read_keys.size() << endl;
+        cout << "WRITE_COUNT = " << now_stats->write_keys.size() << endl;
+        cout << "SCAN_COUNT = " << now_stats->scan_keys.size() << endl;
+    }
+    
+}
