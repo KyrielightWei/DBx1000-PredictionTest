@@ -1,30 +1,25 @@
 /*collect some information for txn runing in the system*/
 
 #ifndef TXN_STATS
-#include TXN_STATS
+#define TXN_STATS
 
 #include "global.h"
 #include "txn.h"
+#include "mem_alloc.h"
 
 #include <map>
 #include <vector>
 
-using std::map;
-using std::cout;
-using std::endl;
+typedef uint64_t key_type;
 
-sizeof uint64_t key_type;
-
-typedef map<txnid_t,EachTxnStats*> TxnMap;
-
-enum TxnType
+enum MyTxnType
 {
-    READ,  //1
-    WR,  //2
-    SCAN,   //3
+    TXN_READ,  //1
+    TXN_WR,  //2
+    TXN_SCAN,   //3
     SCAN_READ, // 1+3 
     SCAN_WR //2+3
-}
+};
 
 struct EachTxnStats //map
 {
@@ -37,9 +32,9 @@ struct EachTxnStats //map
     map<key_type,uint32_t> write_keys;
     map<key_type,uint32_t> scan_keys; // start_key and scan_len
     /*access type*/
-    TXN_TYPE _type;
+    MyTxnType _type;
     /*result*/
-    RC rc；
+    RC rc;
     /*start time*/
     double start_time;
 };
@@ -51,23 +46,27 @@ enum TXN_STATS_TYPE
     READ_KEY,
     WRITE_KEY,
     SCAN_KEY,
-    TXN_TYPE，
+    TXN_TYPE,
     RESULT,
     START_TIME
-}
+};
 
 struct ScanInfo
 {
-    key_type scan_key,
-    uint32_t scan_len
+    key_type scan_key;
+    uint32_t scan_len;
 };
 
+
+typedef map<txnid_t,EachTxnStats*> TxnMap;
 
 class TxnStats
 {
     private:
 
     map<txnid_t,EachTxnStats*> txn_infor_map;
+
+    bool insert_latch;
 
     public:
 
@@ -84,7 +83,8 @@ class TxnStats
     void txn_finish(txn_man * txn,base_query* query,RC rc,uint64_t timespan,uint64_t start_time);
     
     void stats_print();
-}
+};
 
+extern TxnStats txn_stats;
 
 #endif

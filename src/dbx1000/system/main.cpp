@@ -10,6 +10,8 @@
 #include "occ.h"
 #include "vll.h"
 
+#include "txn_stats.h"
+
 void * f(void *);
 
 thread_t ** m_thds;

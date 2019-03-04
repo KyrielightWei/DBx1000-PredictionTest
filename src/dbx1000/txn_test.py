@@ -39,10 +39,10 @@ def test_compile(job):
 	os.system("make clean 1>compileInfor.txt 2>&1")
 	ret = os.system("make -j8 1>compileInfor.txt 2>&1")
 	if ret != 0:
-		print "ERROR in compiling job="
-		print job
+		print ("ERROR in compiling job=")
+		print (job)
 		exit(0)
-	print "PASS Compile\t\talg=%s,\tworkload=%s" % (job['CC_ALG'], job['WORKLOAD'])
+	print ("PASS Compile\t\talg=%s,\tworkload=%s" % (job['CC_ALG'], job['WORKLOAD']))
 
 def test_run(test = '', job=None):
 	app_flags = ""
@@ -68,22 +68,22 @@ def test_run(test = '', job=None):
 		if (now - start).seconds > timeout:
 			os.kill(process.pid, signal.SIGKILL)
 			os.waitpid(-1, os.WNOHANG)
-			print "ERROR. Timeout cmd=%s" % cmd
+			print ("ERROR. Timeout cmd=%s" % cmd)
 			exit(0)
 			
 	runFile = open('runInfor/'+fileTitle);
 
 	if "PASS" in runFile.read():
 		if test != '':
-			print "PASS execution. \talg=%s,\tworkload=%s(%s)" % \
-				(job["CC_ALG"], job["WORKLOAD"], test)
+			print ("PASS execution. \talg=%s,\tworkload=%s(%s)" % \
+				(job["CC_ALG"], job["WORKLOAD"], test))
 		else :
-			print "PASS execution. \talg=%s,\tworkload=%s" % \
-				(job["CC_ALG"], job["WORKLOAD"])
+			print ("PASS execution. \talg=%s,\tworkload=%s" % \
+				(job["CC_ALG"], job["WORKLOAD"]))
 		runFile.close();
 		return
 	runFile.close();
-	print "FAILED execution. cmd = %s" % cmd
+	print ("FAILED execution. cmd = %s" % cmd)
 	exit(0)
 
 def run_all_test(jobs) :

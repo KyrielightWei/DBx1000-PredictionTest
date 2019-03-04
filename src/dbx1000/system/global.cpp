@@ -9,7 +9,7 @@
 #include "vll.h"
 
 
-TxnStats txn_stats;
+//TxnStats txn_stats;
 
 mem_alloc mem_allocator;
 Stats stats;

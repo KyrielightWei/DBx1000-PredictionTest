@@ -29,6 +29,8 @@
 #include "carbon_user.h"
 #endif
 
+//#include "txn_stats.h"
+
 using namespace std;
 
 class mem_alloc;
@@ -68,7 +70,7 @@ extern pthread_barrier_t warmup_bar;
 extern carbon_barrier_t enable_barrier;
 #endif
 
-extern TxnStats txn_stats;
+//C
 
 /******************************************/
 // Global Parameter

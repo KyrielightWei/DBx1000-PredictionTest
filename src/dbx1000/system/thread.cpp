@@ -12,6 +12,7 @@
 #include "tpcc_query.h"
 #include "mem_alloc.h"
 #include "test.h"
+#include "txn_stats.h"
 
 void thread_t::init(uint64_t thd_id, workload * workload) {
 	_thd_id = thd_id;
