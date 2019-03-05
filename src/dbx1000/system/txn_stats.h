@@ -24,7 +24,7 @@ enum MyTxnType
 struct EachTxnStats //map
 {
     /*CPU time*/
-    double cpu_time;
+    uint64_t cpu_time;
     /*memory size*/
     uint64_t me_size;
     /*WR*/
@@ -36,7 +36,7 @@ struct EachTxnStats //map
     /*result*/
     RC rc;
     /*start time*/
-    double start_time;
+    uint64_t start_time;
 };
 
 enum TXN_STATS_TYPE
@@ -66,7 +66,9 @@ class TxnStats
 
     map<txnid_t,EachTxnStats*> txn_infor_map;
 
-    bool insert_latch;
+    pthread_mutex_t insert_txn_mutex;
+    //bool insert_latch;
+    //bool key_count_latch;
 
     public:
 
@@ -83,6 +85,8 @@ class TxnStats
     void txn_finish(txn_man * txn,base_query* query,RC rc,uint64_t timespan,uint64_t start_time);
     
     void stats_print();
+
+    string convertToStr(TXN_STATS_TYPE type,void * value);
 };
 
 extern TxnStats txn_stats;

@@ -61,7 +61,7 @@ def test_run(test = '', job=None):
 	start = datetime.datetime.now()
 
 	process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-	timeout = 10 # in second
+	timeout = 20 # in second
 	while process.poll() is None:
 		time.sleep(1)
 		now = datetime.datetime.now()
@@ -102,11 +102,13 @@ for alg in algs:
 	insert_job(alg, 'YCSB')
 run_all_test(jobs)
 
+'''
 # run TPCC tests
 jobs = {}
 for alg in algs: 
 	insert_job(alg, 'TPCC')
 run_all_test(jobs)
+'''
 
 os.system('cp config-std.h config.h')
 os.system('make clean 1>compileInfor.txt 2>&1')

@@ -1,4 +1,8 @@
 #include "txn_stats.h"
+#include "ycsb_query.h"
+#include "ycsb.h"
+
+#define BILLION 1000000000UL
 
 TxnStats txn_stats;
 
@@ -17,25 +21,41 @@ void TxnStats::clearStats(EachTxnStats * txn_stats)
 
 void TxnStats::init()
 {
+    //insert_latch = false;
+    
+    pthread_mutex_init(&insert_txn_mutex,NULL);
     txn_infor_map.clear();
 }
 
 void TxnStats::add_stats(txnid_t txn_id,TXN_STATS_TYPE type,void * value)
 {
     //cout << type << endl;
-    if(txn_infor_map.find(txn_id)==txn_infor_map.end())
+    /*if(type ==  READ_KEY)
     {
-        cout << txn_id << endl;
+        cout << "READ:" << txn_id << endl;
+    }
+    if(type == WRITE_KEY)
+    {
+        cout << "WRITE:" << txn_id << endl;
+    }*/
+    /*if(txn_infor_map.find(txn_id) == txn_infor_map.end())
+    {   // add_txn(txn_id);
+        cout << "not fond id : "<<txn_id << endl;
         bool id_not_found = true;
         assert(!id_not_found);
+    }*/
+    if(txn_infor_map.find(txn_id) == txn_infor_map.end())
+    {
+        add_txn(txn_id);
     }
+
     EachTxnStats * txn_stats = txn_infor_map[txn_id];
    // map<key_type,uint32_t> * keys = NULL;
     ScanInfo * s = NULL;
     switch (type)
     {
         case CPU_TIME:
-            txn_stats->cpu_time += *((double*)value);
+            txn_stats->cpu_time += *((uint64_t*)value);
             break;
         case MEMORY:
             txn_stats->me_size += *((UInt64*)value);
@@ -54,7 +74,7 @@ void TxnStats::add_stats(txnid_t txn_id,TXN_STATS_TYPE type,void * value)
             txn_stats->_type = *(MyTxnType*)value;
             break;
         case START_TIME:
-            txn_stats->start_time = *(double*)value;
+            txn_stats->start_time = *(uint64_t*)value;
             break;
         case RESULT:
             txn_stats->rc = *(RC*)value;
@@ -76,14 +96,23 @@ void TxnStats::add_stats(txnid_t txn_id,TXN_STATS_TYPE type,void * value)
 
 bool TxnStats::add_txn(txnid_t txn_id)
 {
+    //while ( !ATOM_CAS(insert_latch, false, true) ) {}
+  
+
     if(txn_infor_map.find(txn_id) != txn_infor_map.end())
     {  
-        cout << txn_id << endl;
+       // cout << "have txn - " << txn_id << endl;
         return false;
     }
+    //cout << "have txn" << txn_id << endl;
+    pthread_mutex_lock(&insert_txn_mutex);
     EachTxnStats * temp_stats = (EachTxnStats*)mem_allocator.alloc(sizeof(EachTxnStats),0);
     clearStats(temp_stats);
     txn_infor_map[txn_id] = temp_stats; 
+
+    pthread_mutex_unlock(&insert_txn_mutex);
+    //ATOM_CAS(insert_latch, true, false);
+    
     return true;
 }
 
@@ -130,40 +159,51 @@ void TxnStats::txn_finish(txn_man * txn,base_query* query,RC rc,uint64_t timespa
     txnid_t txn_id = txn->get_txn_id();
    // cout << "txn:" << txn_id << endl;
    	
-    while ( !ATOM_CAS(insert_latch, false, true) ) {}
-    if(!add_txn(txn_id))
+    if(txn_infor_map.find(txn_id) == txn_infor_map.end())
+    {  
+        add_txn(txn_id);
+    }
+    
+   /* if(txn_infor_map.find(txn_id) == txn_infor_map.end())
     {
+        cout << "none:" << txn_id << endl;
+    }*/
+    
+
+    /*if(!add_txn(txn_id))
+    {
+        cout << "already have txn : " << txn_id << endl;
         bool id_insert_fail = false;
         assert(id_insert_fail);
-    }
+    }*/
 
-    ATOM_CAS(insert_latch, true, false);
 
     add_stats(txn_id,RESULT,&rc);
     add_stats(txn_id,CPU_TIME,&timespan);
     add_stats(txn_id,START_TIME,&start_time);
 
-#if WROKLOAD == YCSB
+#if WORKLOAD == YCSB
     uint8_t final_type = 0;
 
     ycsb_query * now_query = (ycsb_query*)query;
     ycsb_request * req = now_query->requests;
-    for(int i=0; i < now_query->request_cnt; i++)
+    //cout << now_query->request_cnt << endl;
+    for(uint64_t i = 0; i < now_query->request_cnt; i++)
     {
-        final_type_cal(&final_type,req[i]->rtype);
-        if(req[i]->rtype == RD)
+        final_type_cal(&final_type,req[i].rtype);
+        if(req[i].rtype == RD)
         {
-            add_stats(txn_id,READ_KEY,req[i]->key);
+            add_stats(txn_id,READ_KEY,&req[i].key);
         }
-        else if (req[i]->rtype == WR) 
+        else if (req[i].rtype == WR) 
         {
-            add_stats(txn_id,WRITE_KEY,req[i]->key);
+            add_stats(txn_id,WRITE_KEY,&req[i].key);
         }
-        else if(req[i]->rtype == SCAN)
+        else if(req[i].rtype == SCAN)
         {
             ScanInfo s;
-            s.scan_key = req[i]->key;
-            s.scan_len = req[i]->scan_len;
+            s.scan_key = req[i].key;
+            s.scan_len = req[i].scan_len;
             add_stats(txn_id,SCAN_KEY,&s);
         }
     }
@@ -204,13 +244,59 @@ void TxnStats::stats_print()
         EachTxnStats * now_stats = i->second;
         cout << endl;
         cout << "TXN_ID = " << txn_id << endl;
-        cout << "CPU_TIME = " << now_stats->cpu_time << endl;
+        cout << "CPU_TIME = " << now_stats->cpu_time  << endl;
         cout << "START_TIME = " << now_stats->start_time << endl;
-        cout << "TXN_RESULT = " << now_stats->rc << endl;
-        cout << "TXN_TYPE = " << now_stats->_type << endl;
+        cout << "TXN_RESULT = " << convertToStr(RESULT,&now_stats->rc)<< endl;
+        cout << "TXN_TYPE = " << convertToStr(TXN_TYPE,&now_stats->_type) << endl;
         cout << "READ_COUNT = " << now_stats->read_keys.size() << endl;
         cout << "WRITE_COUNT = " << now_stats->write_keys.size() << endl;
         cout << "SCAN_COUNT = " << now_stats->scan_keys.size() << endl;
     }
     
+}
+
+string TxnStats::convertToStr(TXN_STATS_TYPE type,void * value)
+{
+    switch (type)
+    {
+        case RESULT:
+            switch (*(RC*)value)
+            {
+                case RCOK:
+                    return "OK";
+                    break;
+                case Abort:
+                    return "Abort";
+                    break;
+                default:
+                    return "Unknown";
+                    break;
+            }
+        case TXN_TYPE:
+            switch (*(MyTxnType*)value)
+            {
+                case TXN_READ:
+                    return "READ";
+                    break;
+                case TXN_WR:
+                    return "WR";
+                    break;
+                case TXN_SCAN:
+                    return "SCAN";
+                    break;
+                case SCAN_READ:
+                    return "SCAN_READ";
+                    break;
+                case SCAN_WR:
+                    return "SCAN_WR";
+                    break;
+                default:
+                    return "Unknown";
+                    break;
+            }
+    
+        default:
+            return "ERROR";
+            break;
+    }
 }
