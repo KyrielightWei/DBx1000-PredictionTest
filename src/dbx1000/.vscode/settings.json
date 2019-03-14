@@ -10,5 +10,6 @@
         "optional": "cpp",
         "ostream": "cpp",
         "system_error": "cpp"
-    }
+    },
+    "python.pythonPath": "/usr/bin/python3"
 }

@@ -20,18 +20,27 @@ test_count = 0
 
 jobs = {}
 dbms_cfg = ["config-std.h", "config.h"]
-algs = ['DL_DETECT', 'NO_WAIT', 'HEKATON', 'SILO', 'TICTOC']
-def insert_job(alg, workload):
-	jobs[alg + '_' + workload] = {
+algs = ['DL_DETECT', 'NO_WAIT', 'OCC','MVCC']
+theta = [0.6 , 0.9]
+write_perc = [0.2 , 0.5 , 0.8]
+scan_perc = [0,0.1]
+
+def insert_job(alg, workload, thetaVal, writePerc, scanPerc):
+	jobs[alg + '_' + workload + '_theta' + str(thetaVal) + '_WR'+str(writePerc) + '_SCAN' + str(scanPerc)] = {
 		"WORKLOAD"			: workload,
+		"INDEX_STRUCT"      : "IDX_BTREE",
 		"CORE_CNT"			: 4,
 		"CC_ALG"			: alg,
+		"ZIPF_THETA"        : thetaVal,
+		"WRITE_PERC"        : writePerc,
+		"READ_PERC"         : 1-writePerc-scanPerc,
+		"SCAN_PERC"         : scanPerc
 	}
 
 
 def test_compile(job):
 	os.system("cp "+ dbms_cfg[0] +' ' + dbms_cfg[1])
-	for (param, value) in job.iteritems():
+	for (param, value) in job.items():
 		pattern = r"\#define\s*" + re.escape(param) + r'.*'
 		replacement = "#define " + param + ' ' + str(value)
 		replace(dbms_cfg[1], pattern, replacement)
@@ -55,7 +64,11 @@ def test_run(test = '', job=None):
 	#cmd = "./rundb %s > temp.out 2>&1" % app_flags
 	global test_count
 	test_count = test_count + 1 
-	fileTitle = job["CC_ALG"]+'_'+job["WORKLOAD"]+'_'+'run-'+str(test_count)+'.txt'
+	fileTitle = job["CC_ALG"]+'_'+job["WORKLOAD"]+'_'+'theta'+str(int(job["ZIPF_THETA"]*10))+'_WR'+str(int(job["WRITE_PERC"]*10)) +'_SCAN'+str(int(job["SCAN_PERC"]*10))+'.txt'
+
+	if(os.path.isfile("./runInfor/" + fileTitle)):
+		print(fileTitle + " exists! stop run this test!")
+		return
 
 	cmd = "./rundb %s 1>>runInfor/%s 2>&1 " % (app_flags,fileTitle)
 	start = datetime.datetime.now()
@@ -75,11 +88,11 @@ def test_run(test = '', job=None):
 
 	if "PASS" in runFile.read():
 		if test != '':
-			print ("PASS execution. \talg=%s,\tworkload=%s(%s)" % \
-				(job["CC_ALG"], job["WORKLOAD"], test))
+			print ("PASS execution. \talg=%s,\tworkload=%s(%s) theta_%s WR_%s SCAN_%s" % \
+				(job["CC_ALG"], job["WORKLOAD"],job["ZIPF_THETA"],job["WRITE_PERC"],job["SCAN_PERC"], test))
 		else :
-			print ("PASS execution. \talg=%s,\tworkload=%s" % \
-				(job["CC_ALG"], job["WORKLOAD"]))
+			print ("PASS execution. \talg=%s,\tworkload=%s theta_%s WR_%s SCAN_%s" % \
+				(job["CC_ALG"], job["WORKLOAD"],job["ZIPF_THETA"],job["WRITE_PERC"],job["SCAN_PERC"]))
 		runFile.close();
 		return
 	runFile.close();
@@ -87,7 +100,7 @@ def test_run(test = '', job=None):
 	exit(0)
 
 def run_all_test(jobs) :
-	for (jobname, job) in jobs.iteritems():
+	for (jobname, job) in jobs.items():
 		test_compile(job)
 		if job['WORKLOAD'] == 'TEST':
 			test_run('read_write', job)
@@ -96,11 +109,26 @@ def run_all_test(jobs) :
 			test_run('', job)
 	jobs = {}
 
-# run YCSB tests
+
+### run YCSB tests
+'''
+# theta_test
 jobs = {}
-for alg in algs: 
-	insert_job(alg, 'YCSB')
+for thetaVal in theta: 
+	insert_job(algs[0], 'YCSB',thetaVal,write_perc[0],scan_perc[0])
 run_all_test(jobs)
+# write_perc_test
+jobs = {}
+for writePerc in write_perc: 
+	insert_job(algs[0], 'YCSB',theta[0],writePerc,scan_perc[0])
+run_all_test(jobs)
+'''
+# scan_perc_test
+jobs = {}
+for scanPerc in scan_perc: 
+	insert_job(algs[1], 'YCSB',theta[0],write_perc[0],scanPerc)
+run_all_test(jobs)
+
 
 '''
 # run TPCC tests

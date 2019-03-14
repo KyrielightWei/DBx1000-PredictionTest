@@ -16,7 +16,7 @@
 // # of transactions to run for warmup
 #define WARMUP						0
 // YCSB or TPCC
-#define WORKLOAD 					YCSB
+#define WORKLOAD YCSB
 // print the transaction latency distribution
 #define PRT_LAT_DISTR				false
 #define STATS_ENABLE				true
@@ -39,7 +39,7 @@
 /***********************************************/
 // WAIT_DIE, NO_WAIT, DL_DETECT, TIMESTAMP, MVCC, HEKATON, HSTORE, OCC, VLL, TICTOC, SILO
 // TODO TIMESTAMP does not work at this moment
-#define CC_ALG 						TICTOC
+#define CC_ALG NO_WAIT
 #define ISOLATION_LEVEL 			SERIALIZABLE
 
 // all transactions acquire tuples according to the primary key order.
@@ -56,7 +56,7 @@
 #define ENABLE_LATCH				false
 #define CENTRAL_INDEX				false
 #define CENTRAL_MANAGER 			false
-#define INDEX_STRUCT				IDX_HASH
+#define INDEX_STRUCT IDX_BTREE
 #define BTREE_ORDER 				16
 
 // [DL_DETECT] 
@@ -115,10 +115,10 @@
 // ==== [YCSB] ====
 #define INIT_PARALLELISM			40
 #define SYNTH_TABLE_SIZE 			(1024 * 40)
-#define ZIPF_THETA 					0.6
-#define READ_PERC 					0.9
-#define WRITE_PERC 					0.1
-#define SCAN_PERC 					0
+#define ZIPF_THETA 0.6
+#define READ_PERC 0.8
+#define WRITE_PERC 0.2
+#define SCAN_PERC 0
 #define SCAN_LEN					20
 #define PART_PER_TXN 				1
 #define PERC_MULTI_PART				1
