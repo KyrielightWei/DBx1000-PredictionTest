@@ -23,18 +23,22 @@ dbms_cfg = ["config-std.h", "config.h"]
 algs = ['DL_DETECT', 'NO_WAIT', 'OCC','MVCC']
 theta = [0.6 , 0.9]
 write_perc = [0.2 , 0.5 , 0.8]
-scan_perc = [0,0.1]
+scan_perc = [0]      #无意义，hash索引不支持扫描，b树索引存在问题
 
 def insert_job(alg, workload, thetaVal, writePerc, scanPerc):
-	jobs[alg + '_' + workload + '_theta' + str(thetaVal) + '_WR'+str(writePerc) + '_SCAN' + str(scanPerc)] = {
+	jobs[alg + '_' + workload + '_theta' + str(thetaVal) + '_WR'+str(writePerc)] = {
 		"WORKLOAD"			: workload,
-		"INDEX_STRUCT"      : "IDX_BTREE",
+		"INDEX_STRUCT"      : "IDX_HASH",
+		"ENABLE_LATCH"      : "false", #无意义
+		"CENTRAL_INDEX"     : "false", #无意义
 		"CORE_CNT"			: 4,
 		"CC_ALG"			: alg,
 		"ZIPF_THETA"        : thetaVal,
 		"WRITE_PERC"        : writePerc,
 		"READ_PERC"         : 1-writePerc-scanPerc,
-		"SCAN_PERC"         : scanPerc
+		"SCAN_PERC"         : scanPerc,
+		"MAX_TXN_PER_PART"  : 10000,
+		"THREAD_CNT"        : 4
 	}
 
 
@@ -64,7 +68,7 @@ def test_run(test = '', job=None):
 	#cmd = "./rundb %s > temp.out 2>&1" % app_flags
 	global test_count
 	test_count = test_count + 1 
-	fileTitle = job["CC_ALG"]+'_'+job["WORKLOAD"]+'_'+'theta'+str(int(job["ZIPF_THETA"]*10))+'_WR'+str(int(job["WRITE_PERC"]*10)) +'_SCAN'+str(int(job["SCAN_PERC"]*10))+'.txt'
+	fileTitle = job["CC_ALG"]+'_'+job["WORKLOAD"]+'_'+'theta'+str(int(job["ZIPF_THETA"]*10))+'_WR'+str(int(job["WRITE_PERC"]*10))+'.txt'
 
 	if(os.path.isfile("./runInfor/" + fileTitle)):
 		print(fileTitle + " exists! stop run this test!")
@@ -111,7 +115,7 @@ def run_all_test(jobs) :
 
 
 ### run YCSB tests
-'''
+
 # theta_test
 jobs = {}
 for thetaVal in theta: 
@@ -128,7 +132,7 @@ jobs = {}
 for scanPerc in scan_perc: 
 	insert_job(algs[1], 'YCSB',theta[0],write_perc[0],scanPerc)
 run_all_test(jobs)
-
+'''
 
 '''
 # run TPCC tests
