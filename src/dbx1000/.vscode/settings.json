@@ -9,7 +9,12 @@
         "istream": "cpp",
         "optional": "cpp",
         "ostream": "cpp",
-        "system_error": "cpp"
+        "system_error": "cpp",
+        "*.tcc": "cpp",
+        "array": "cpp",
+        "initializer_list": "cpp",
+        "utility": "cpp",
+        "string_view": "cpp"
     },
     "python.pythonPath": "/usr/bin/python3"
 }

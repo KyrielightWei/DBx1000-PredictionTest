@@ -91,10 +91,16 @@ void ycsb_query::gen_requests(uint64_t thd_id, workload * h_wl) {
 
 	int rid = 0;
 	for (UInt32 tmp = 0; tmp < g_req_per_query; tmp ++) {		
+		/*
 		double r;
 		drand48_r(&_query_thd->buffer, &r);
+		*/
+
+		double r;
+		r = ((double)(tmp+1)) / g_req_per_query;
 		ycsb_request * req = &requests[rid];
 		if (r < g_read_perc) {
+			//cout << r << endl;
 			req->rtype = RD;
 		} else if (r >= g_read_perc && r <= g_write_perc + g_read_perc) {
 			req->rtype = WR;

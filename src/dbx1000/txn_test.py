@@ -20,7 +20,7 @@ test_count = 0
 
 jobs = {}
 dbms_cfg = ["config-std.h", "config.h"]
-algs = ['DL_DETECT', 'NO_WAIT', 'OCC','MVCC']
+algs = ['DL_DETECT', 'NO_WAIT', 'WAIT_DIE','OCC','MVCC']
 theta = [0.6 , 0.9]
 write_perc = [0.2 , 0.5 , 0.8]
 scan_perc = [0]      #无意义，hash索引不支持扫描，b树索引存在问题
@@ -38,7 +38,8 @@ def insert_job(alg, workload, thetaVal, writePerc, scanPerc):
 		"READ_PERC"         : 1-writePerc-scanPerc,
 		"SCAN_PERC"         : scanPerc,
 		"MAX_TXN_PER_PART"  : 10000,
-		"THREAD_CNT"        : 4
+		"THREAD_CNT"        : 4,
+		"SYNTH_TABLE_SIZE"  : "(1024 * 40)"
 	}
 
 
@@ -119,12 +120,12 @@ def run_all_test(jobs) :
 # theta_test
 jobs = {}
 for thetaVal in theta: 
-	insert_job(algs[0], 'YCSB',thetaVal,write_perc[0],scan_perc[0])
+	insert_job(algs[2], 'YCSB',thetaVal,write_perc[0],scan_perc[0])
 run_all_test(jobs)
 # write_perc_test
 jobs = {}
 for writePerc in write_perc: 
-	insert_job(algs[0], 'YCSB',theta[0],writePerc,scan_perc[0])
+	insert_job(algs[2], 'YCSB',theta[0],writePerc,scan_perc[0])
 run_all_test(jobs)
 '''
 # scan_perc_test
