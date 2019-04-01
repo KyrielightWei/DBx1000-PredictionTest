@@ -313,6 +313,147 @@ def showPlotForDistribution(charTitle,plotDict,interval=1000,minV=0,maxV=0):
     print(cnt)
     return max_val,interval
 
+
+myTypeList = ['ReadRecord','ReadModifyWriteRecord']
+dbx1000TypeList = []
+'''
+dataDict
+{
+    sheetName,
+    dataList   // At least two list 
+}
+'''
+def convertToPercentDict(dataDict,typeNameList = myTypeList):
+    percent_dict = {}
+    #print(len(dataDict.keys()))
+    #print(len(list(dataDict.values())[0][0]))
+    for sheetN,data_list in dataDict.items():
+        typeDict = {}
+        i = 0
+        for name in typeNameList:
+            typeDict[name] = []
+        for name in data_list[0]:
+            if(name in typeNameList):
+                typeDict[name].append(data_list[1][i])
+            i = i + 1
+        percent_dict[sheetN] = typeDict
+    return percent_dict
+    '''
+    return percent_dict
+    ''' 
+
+'''
+valueDict struct:
+{
+    sheetName(ClassName),
+    typeDict:
+    {
+        typeName,
+        valueList
+    }
+}
+'''
+def showPlotDistributionPercent(charTitle,valueDict,interval=500000,minV=0,maxV=0):
+    # generate range
+    max_val = 0
+    min_val = 0
+    for  key,typeDict in valueDict.items():
+        for v in typeDict.values():
+            if(max_val == 0 and min_val == 0):
+                max_val = max(v)
+                min_val = min(v)
+            if(max(v) > max_val):
+                max_val = max(v)
+            if(min(v) < min_val):
+                min_val = min(v)
+    '''
+    if(minV != 0):
+        min_val = minV
+    '''
+    min_val = minV
+    if(maxV != 0):
+        max_val = maxV
+    rangeVal  = max_val - min_val
+    # generate count list
+    interval = int(interval)
+    rCnt = int(rangeVal / interval)
+    if(rangeVal % interval != 0):
+         rCnt = rCnt + 1
+    #print(rCnt)
+   # print(max_val)
+    #print(rCnt)
+    x_list = []
+    for i in range(rCnt):
+        x_list.append("["+str(int(min_val + i*interval))+","+str(int(min_val + (i+1)*interval))+")")
+    count_dict = {}
+    sum_dict = {}
+    for k in valueDict.keys():
+        for typeKey in typeDict.keys():
+            #count_dict[k+'_'+typeKey] = []
+            count_dict[k+'_'+typeKey]= [0]*rCnt
+            sum_dict[k+'_'+typeKey] = 0
+        #count_list.append(tmp_lsit)
+    #print(count_dict)
+    #cal count_list
+    for k,typeDict in valueDict.items():
+        for typeKey,valList in typeDict.items():
+            for val in valList:
+                if(val <= max_val and val >= min_val):
+                    #print(val-min_val)
+                    if(val == max_val and (val-min_val) % interval == 0):
+                        val = val - 1 
+                    count_dict[k+'_'+typeKey][int((val-min_val)/ interval)] +=  1
+                    sum_dict[k+'_'+typeKey] += 1
+    #cal percent 
+    percent_dict = {}
+    for ck,cv in count_dict.items():
+        #percent_dict[ck] = []
+        percent_dict[ck] = [0.0]*rCnt
+        i = 0
+        for cnt in cv:
+            percent_dict[ck][i] = cnt / sum_dict[ck] * 100;
+            percent_dict[ck][i] = round(percent_dict[ck][i],2)
+            i = i + 1
+    
+    for pk,pv in percent_dict.items():
+        print(pk+':'+str(pv))
+    
+    key_i = 0
+    for k,cntlist in percent_dict.items():
+        plt.plot(x_list,cntlist,colorStr[key_i]+'o--',label = k)
+        key_i = key_i + 1
+    plt.title(charTitle)
+    plt.xlabel("Range")
+    plt.ylabel("Count(%)")
+    plt.legend()
+    plt.show()
+    #print(cnt)
+
+def runPercentDis():
+    c_arg = [1,3]
+    sheetIndex_args = [0,1,2]
+    
+    data_dict = {}
+    for s_arg in sheetIndex_args:
+        sheetName = getSheetNameForOLTPbench(s_arg)
+        dataList = getDataSet(sheetName,c_arg)
+        intList = []
+        del dataList[0][0]
+        intList.append(dataList[0])
+        intList.append(converToInt(dataList[1]))
+        data_dict[sheetName] = intList
+    percentDict = convertToPercentDict(data_dict)
+    showPlotDistributionPercent("All",percentDict,interval=500000)
+    showPlotDistributionPercent("Hlight",percentDict,minV=990000,maxV=1010000,interval=2000)
+        #print(len(intList[0]))
+        #print(len(intList[1]))
+    
+   # print(data_dict.values())
+   
+        
+
+
+
 #main
 excelFileName = 'runExcel.xlsx'
 excelFile = xlrd.open_workbook(excelFileName);
