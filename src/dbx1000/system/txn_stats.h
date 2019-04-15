@@ -37,6 +37,10 @@ struct EachTxnStats //map
     RC rc;
     /*start time*/
     uint64_t start_time;
+    /*start time*/
+    uint64_t get_query_time;
+    uint64_t index_time;
+    uint64_t cc_time;
 };
 
 enum TXN_STATS_TYPE
@@ -48,7 +52,10 @@ enum TXN_STATS_TYPE
     SCAN_KEY,
     TXN_TYPE,
     RESULT,
-    START_TIME
+    START_TIME,
+    GET_QUERY_TIME,
+    INDEX_TIME,
+    CC_TIME
 };
 
 struct ScanInfo
@@ -56,7 +63,6 @@ struct ScanInfo
     key_type scan_key;
     uint32_t scan_len;
 };
-
 
 typedef map<txnid_t,EachTxnStats*> TxnMap;
 
@@ -82,7 +88,8 @@ class TxnStats
 
     void final_type_cal(uint8_t * final_type,access_t rtype);
 
-    void txn_finish(txn_man * txn,base_query* query,RC rc,uint64_t timespan,uint64_t start_time);
+    void txn_finish(txn_man * txn,base_query* query,RC rc,uint64_t timespan,uint64_t start_time,uint64_t query_time,RunInfor infor);
+
     
     void stats_print();
 

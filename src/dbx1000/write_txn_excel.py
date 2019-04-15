@@ -3,7 +3,7 @@ import xlwt
 
 excel_file = xlwt.Workbook()
 
-COL_NAME = ['TXN_ID','CPU_TIME','START_TIME','TXN_RESULT','TXN_TYPE','READ_COUNT','WRITE_COUNT','SCAN_COUNT']
+COL_NAME = ['TXN_ID','CPU_TIME','START_TIME','TXN_RESULT','TXN_TYPE','READ_COUNT','WRITE_COUNT','SCAN_COUNT','GET_QUERY_TIME','INDEX_TIME','CC_TIME']
 
 def initSheetHeader(sheetName , xlFile):
     xlSheet = xlFile.add_sheet(sheetName,True)

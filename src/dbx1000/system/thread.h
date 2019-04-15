@@ -1,6 +1,7 @@
 #pragma once 
 
 #include "global.h"
+#include "ycsb.h"
 
 class workload;
 class base_query;

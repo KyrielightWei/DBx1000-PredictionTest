@@ -162,3 +162,12 @@ enum TsType {R_REQ, W_REQ, P_REQ, XP_REQ};
 #define UINT64_MAX 		18446744073709551615UL
 #endif // UINT64_MAX
 
+/*************************/
+//MY Struct for Txn
+/************************/
+struct RunInfor      // ycsb run txn
+{
+	RC rc;
+	uint64_t index_time;
+	uint64_t cc_time;
+};

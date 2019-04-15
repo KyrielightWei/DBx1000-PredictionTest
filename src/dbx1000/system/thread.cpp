@@ -98,6 +98,7 @@ RC thread_t::run() {
 			}
 		}
 		INC_STATS(_thd_id, time_query, get_sys_clock() - starttime);
+		ts_t txn_get_query_time = get_sys_clock() - starttime;
 		m_txn->abort_cnt = 0;
 //#if CC_ALG == VLL
 //		_wl->get_txn_man(m_txn, this);
@@ -128,12 +129,17 @@ RC thread_t::run() {
 		// results should be the same.
 		m_txn->start_ts = get_next_ts(); 
 #endif
+		RunInfor infor;
 		if (rc == RCOK) 
 		{
 #if CC_ALG != VLL
+			
 			if (WORKLOAD == TEST)
 				rc = runTest(m_txn);
-			else 
+			else if (WORKLOAD == YCSB) {
+				infor = ((ycsb_txn_man*)m_txn)->run_txn_other(m_query);
+				rc = infor.rc;
+			}
 				rc = m_txn->run_txn(m_query);
 #endif
 #if CC_ALG == HSTORE
@@ -171,7 +177,7 @@ RC thread_t::run() {
 		INC_STATS(get_thd_id(), run_time, timespan);
 		INC_STATS(get_thd_id(), latency, timespan);
 		//stats.add_lat(get_thd_id(), timespan);
-		txn_stats.txn_finish(m_txn,m_query,rc,timespan,starttime);
+		txn_stats.txn_finish(m_txn,m_query,rc,timespan,starttime,txn_get_query_time,infor);
 		if (rc == RCOK) {
 			INC_STATS(get_thd_id(), txn_cnt, 1);
 			stats.commit(get_thd_id());

@@ -120,12 +120,12 @@ def run_all_test(jobs) :
 # theta_test
 jobs = {}
 for thetaVal in theta: 
-	insert_job(algs[2], 'YCSB',thetaVal,write_perc[0],scan_perc[0])
+	insert_job(algs[1], 'YCSB',thetaVal,write_perc[0],scan_perc[0])
 run_all_test(jobs)
 # write_perc_test
 jobs = {}
 for writePerc in write_perc: 
-	insert_job(algs[2], 'YCSB',theta[0],writePerc,scan_perc[0])
+	insert_job(algs[1], 'YCSB',theta[0],writePerc,scan_perc[0])
 run_all_test(jobs)
 '''
 # scan_perc_test

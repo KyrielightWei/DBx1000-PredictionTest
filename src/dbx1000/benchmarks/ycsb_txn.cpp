@@ -21,19 +21,26 @@ void ycsb_txn_man::init(thread_t * h_thd, workload * h_wl, uint64_t thd_id) {
 	_wl = (ycsb_wl *) h_wl;
 }
 
-RC ycsb_txn_man::run_txn(base_query * query) {
+RunInfor ycsb_txn_man::run_txn_other(base_query * query) {
 	RC rc;
 	ycsb_query * m_query = (ycsb_query *) query;
 	ycsb_wl * wl = (ycsb_wl *) h_wl;
 	itemid_t * m_item = NULL;
   	row_cnt = 0;
 
+	RunInfor infor;
+	infor.index_time = 0;
+	infor.cc_time = 0;
+	ts_t starttime = 0;
+
 	for (uint32_t rid = 0; rid < m_query->request_cnt; rid ++) {
+
 		ycsb_request * req = &m_query->requests[rid];
 		int part_id = wl->key_to_part( req->key );
 		bool finish_req = false;
 		UInt32 iteration = 0;
 		while ( !finish_req ) {
+			starttime = get_sys_clock();
 			if (iteration == 0) {
 				m_item = index_read(_wl->the_index, req->key, part_id);
 			} 
@@ -47,8 +54,12 @@ RC ycsb_txn_man::run_txn(base_query * query) {
 			row_t * row = ((row_t *)m_item->location);
 			row_t * row_local; 
 			access_t type = req->rtype;
-			
+			infor.index_time += get_sys_clock() - starttime; 
+
+			starttime =  get_sys_clock();
 			row_local = get_row(row, type);
+			infor.cc_time += get_sys_clock() - starttime;
+
 			if (row_local == NULL) {
 				rc = Abort;
 				goto final;
@@ -82,6 +93,8 @@ RC ycsb_txn_man::run_txn(base_query * query) {
 	rc = RCOK;
 final:
 	rc = finish(rc);
-	return rc;
+
+	infor.rc = rc;
+	return infor;
 }
 
